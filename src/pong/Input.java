@@ -10,7 +10,7 @@ import com.jogamp.newt.event.MouseAdapter;
  */
 public class Input extends MouseAdapter implements KeyListener{
     private Cena cena;
-    private float mouseX, mouseY;
+    private float mouseX, mouseY, accelX, accelY;
     private boolean stop = false;
     
     public Input(Cena cena){
@@ -26,7 +26,15 @@ public class Input extends MouseAdapter implements KeyListener{
         // Menu do jogo
         if(e.getKeyCode() == KeyEvent.VK_ENTER){
             stop = !stop;
-            cena.ballAccelX = cena.ballAccelY = 0;
+            if (cena.ballAccelX != 0){
+                accelX = cena.ballAccelX;
+                accelY = cena.ballAccelY;
+                cena.ballAccelX = cena.ballAccelY = 0;
+            }
+            else{
+                cena.ballAccelX = accelX;
+                cena.ballAccelY = accelY;
+            }
         }
     }
 
