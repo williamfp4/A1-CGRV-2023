@@ -1,0 +1,40 @@
+# Compiled class files
+*.class
+
+# IntelliJ IDEA files
+.idea/
+
+# Eclipse files
+.classpath
+.project
+.settings/
+
+# NetBeans files
+nbproject/
+
+# Compiled files
+bin/
+target/
+
+# Logs and generated files
+log/
+logs/
+*.log
+*.log.*
+*.log.1
+*.log.2
+
+# Temporary files
+*.swp
+*~
+*.bak
+*.backup
+*.orig
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# User-specific files
+*.iml
+.idea_modules/
