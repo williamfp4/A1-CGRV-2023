@@ -25,9 +25,12 @@ public class Renderer {
         //window.setResizable(false);
         
         Cena cena = new Cena();
+        Input inputs = new Input(cena);
         
         window.addGLEventListener(cena);
-        window.addKeyListener(new KeyBoard(cena));
+        window.addMouseListener(inputs);
+        window.addKeyListener(inputs);
+        
         
         FPSAnimator animator = new FPSAnimator(window, 60);
         animator.start();
@@ -41,7 +44,7 @@ public class Renderer {
         });       
         
         // Se preferir colocar em Janela, mudar para false
-        window.setFullscreen(true);        
+        window.setFullscreen(false);        
         window.setVisible(true);
     }
   

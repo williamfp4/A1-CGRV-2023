@@ -1,7 +1,6 @@
 package pong;
 
 import java.util.Random;
-import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
@@ -13,7 +12,7 @@ import com.jogamp.opengl.util.gl2.GLUT;
  */
 public class Cena implements GLEventListener{    
     private float xMin, xMax, yMin, yMax, zMin, zMax, ballX, ballY;
-    public float angle, lower, movePaddle, ballAccelX, ballAccelY, colorR, colorG, colorB;
+    public float angle, lower, movePaddle, ballAccelX, ballAccelY, colorR, colorG, colorB, mouseX, larguraFrame, alturaFrame;
     Paddle pad = new Paddle(-1.5f, 1.5f, 0.2f);
     Random rn = new Random();
     GLU glu;
@@ -29,7 +28,7 @@ public class Cena implements GLEventListener{
         colorG = colorB = 0f;
         ballX = -0.05f;
         ballY = -0.05f;
-        ballAccelX = 0.05f;
+        ballAccelX = 0.1f;
         ballAccelY = 0.1f;
     }
 
@@ -82,7 +81,6 @@ public class Cena implements GLEventListener{
             ballAccelY = -ballAccelY;
         }       
 
-        System.out.println(xL + movePaddle);
         gl.glColor3f(colorR,colorG,colorB);
         gl.glTranslatef(ballX, ballY, 0.0f);
         gl.glPushMatrix();
@@ -112,6 +110,9 @@ public class Cena implements GLEventListener{
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
         System.out.println("Reshape: " + width + ", " + height);
+
+        larguraFrame = width;
+        alturaFrame = height;
     }    
        
     @Override
