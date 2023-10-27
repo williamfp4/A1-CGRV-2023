@@ -28,8 +28,7 @@ public class Cena implements GLEventListener{
         colorG = colorB = 0f;
         ballX = -0.05f;
         ballY = -0.05f;
-        ballAccelX = 0.1f;
-        ballAccelY = 0.1f;
+        ballAccelX = ballAccelY = 0.1f;
     }
 
     @Override
@@ -72,13 +71,24 @@ public class Cena implements GLEventListener{
         if (ballX >= 14.2f || ballX <= -14.2f) {
             ballAccelX = -ballAccelX;
         }
-        if ((ballY >= -6.0f && ballY <= -5.8f) && (ballX >= xL+movePaddle && ballX <= xR+movePaddle)){
-            colorR = num;
-            num = rn.nextFloat() * 5f;
-            colorG = num;
-            num = rn.nextFloat() * 5f;
-            colorB = num;
-            ballAccelY = -ballAccelY;
+        if ((ballY >= -6.2f && ballY <= -5.8f) && (ballX >= xL+movePaddle && ballX <= xR+movePaddle)){
+            float center = (xL+xR)/2;
+            float bounceAngle = 5f;
+            float ballSpeed = 0.2f;
+            if (ballX > xL+movePaddle && ballX < center+movePaddle-0.3f) {
+                System.out.println("Left");
+                bounceAngle += Math.sqrt(ballX*ballX);
+                ballAccelX = ballSpeed * (float) Math.cos(bounceAngle); 
+            } else if (ballX < xR+movePaddle && ballX > center+movePaddle+0.3f) {
+                System.out.println("Right");
+                bounceAngle += Math.sqrt(ballX*ballX);
+                ballAccelX = -ballSpeed * (float) Math.cos(bounceAngle);  
+            } else {
+                System.out.println("Middle");
+                bounceAngle = 0.0f;
+                ballAccelX = ballSpeed * (float) Math.cos(bounceAngle);  
+            }
+            ballAccelY = -ballSpeed * (float) Math.sin(bounceAngle);
         }       
 
         gl.glColor3f(colorR,colorG,colorB);
