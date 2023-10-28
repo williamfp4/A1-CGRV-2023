@@ -10,9 +10,9 @@ import com.jogamp.opengl.util.gl2.GLUT;
  *
  * @author William Franz
  */
-public class Cena implements GLEventListener{    
+public class Cena implements GLEventListener {    
     private float xMin, xMax, yMin, yMax, zMin, zMax, ballX, ballY;
-    public float angle, lower, movePaddle, ballAccelX, ballAccelY, colorR, colorG, colorB, mouseX, larguraFrame, alturaFrame;
+    public float movePaddle, ballVelX, ballVelY, ballSpeed, colorR, colorG, colorB, mouseX, larguraFrame, alturaFrame;
     Paddle pad = new Paddle(-1.5f, 1.5f, 0.2f);
     Random rn = new Random();
     GLU glu;
@@ -23,12 +23,11 @@ public class Cena implements GLEventListener{
         //Estabelece as coordenadas do SRU (Sistema de Referencia do Universo)
         xMin = yMin = zMin = -8;
         xMax = yMax = zMax = 8;
-        lower = movePaddle = angle = 0;
+        movePaddle = 0;
         colorR = 0.5f;
         colorG = colorB = 0f;
-        ballX = -0.05f;
-        ballY = -0.05f;
-        ballAccelX = ballAccelY = 0.1f;
+        ballX = ballY = -0.05f;
+        ballSpeed = ballVelX = ballVelY = 0.125f;
     }
 
     @Override
@@ -38,6 +37,7 @@ public class Cena implements GLEventListener{
         gl.glClearColor(0, 0, 0, 0);
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT);       
         gl.glLoadIdentity(); 
+        // REVER O POLYGON MODE NAS PRÓXIMAS IMPLEMENTAÇÕES
         gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
 
         drawGame(gl,glut);
@@ -49,7 +49,6 @@ public class Cena implements GLEventListener{
         float xL = pad.getxLeft();
         float xR = pad.getxRight();
         float y = pad.getY();
-        float num = rn.nextFloat() * 5f;
         gl.glColor3f(0.0f,0.5f,0.5f);
         gl.glPushMatrix();
             gl.glTranslatef(movePaddle, -6.0f, 0.0f);
@@ -61,45 +60,50 @@ public class Cena implements GLEventListener{
             gl.glEnd();
         gl.glPopMatrix();
 
-        if (ballY >= 8.0f) {
-            ballAccelY = -ballAccelY;
-        }else if (ballY < -8.9f){
+
+        if (ballX >= 14.2f || ballX <= -14.2f) 
+            ballVelX = -ballVelX;
+
+        if (ballY >= 8.0f) 
+            ballVelY = -ballVelY;
+        else if (ballY < -8.9f)
+        {
             ballX = 0f; ballY = 5f;
-            gl.glTranslatef(ballX, ballY, 0.0f);
-            ballAccelX = -ballAccelX;
+            ballSpeed = 0.125f;
+            ballVelX = -ballVelX;
         }
-        if (ballX >= 14.2f || ballX <= -14.2f) {
-            ballAccelX = -ballAccelX;
-        }
-        if ((ballY >= -6.2f && ballY <= -5.8f) && (ballX >= xL+movePaddle && ballX <= xR+movePaddle)){
-            float center = (xL+xR)/2;
-            float bounceAngle = 5f;
-            float ballSpeed = 0.2f;
-            if (ballX > xL+movePaddle && ballX < center+movePaddle-0.3f) {
-                System.out.println("Left");
-                bounceAngle += Math.sqrt(ballX*ballX);
-                ballAccelX = ballSpeed * (float) Math.cos(bounceAngle); 
-            } else if (ballX < xR+movePaddle && ballX > center+movePaddle+0.3f) {
-                System.out.println("Right");
-                bounceAngle += Math.sqrt(ballX*ballX);
-                ballAccelX = -ballSpeed * (float) Math.cos(bounceAngle);  
-            } else {
-                System.out.println("Middle");
-                bounceAngle = 0.0f;
-                ballAccelX = ballSpeed * (float) Math.cos(bounceAngle);  
-            }
-            ballAccelY = -ballSpeed * (float) Math.sin(bounceAngle);
-        }       
+        else if ((ballY >= -6.15f && ballY <= -5.8f) && (ballX >= xL + movePaddle && ballX <= xR + movePaddle)) 
+        {
+            // Cálculo da posição relativa do impacto da bola
+            float positionHit = (ballX - (xL + movePaddle)) / (xR - xL);
+            // Aumentar a velocidade após atingir a bola
+            ballSpeed = 0.2f;
+            // Aqui fazemos o cálculo do Ângulo de Reflexão com base no impacto da bola
+            float bounceAngle = (float) (Math.PI * (positionHit)) * -1;
+
+            /* ADICIONAR INFORMAÇÕES AO README.md:
+            Esta seção limita os ângulos a serem obtidos para maiores que -17° e menores que -154°
+            melhorando o desempenho das trajetórias, evitando estagnar o jogo.
+            https://www.rapidtables.com/convert/number/radians-to-degrees.html */
+            if (bounceAngle < -2.7f) 
+                bounceAngle = -2.7f;
+            else if (bounceAngle > -0.3f)
+                bounceAngle = -0.3f;
+
+            // Utilizando o cosseno do ângulo, decompomos a velocidade horizontal (Eixo X)
+            ballVelX = ballSpeed * (float) Math.cos(bounceAngle);
+            // Utilizando o seno do ângulo, decompomos a velocidade vertical (Eixo Y)
+            ballVelY = -ballSpeed * (float) Math.sin(bounceAngle);
+        }   
 
         gl.glColor3f(colorR,colorG,colorB);
         gl.glTranslatef(ballX, ballY, 0.0f);
         gl.glPushMatrix();
-            gl.glRotated(0, 0, 5, 1);
             glut.glutSolidSphere(0.2f, 70, 50);
         gl.glPopMatrix();
 
-        ballX -= ballAccelX;
-        ballY += ballAccelY;
+        ballX -= ballVelX;
+        ballY += ballVelY;
     }
 
     @Override
