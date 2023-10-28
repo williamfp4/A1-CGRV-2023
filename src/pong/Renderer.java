@@ -44,7 +44,7 @@ public class Renderer {
         });       
         
         // Se preferir colocar em Janela, mudar para false
-        window.setFullscreen(false);        
+        window.setFullscreen(true);        
         window.setVisible(true);
     }
   
