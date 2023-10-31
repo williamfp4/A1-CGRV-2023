@@ -1,6 +1,12 @@
 package pong;
 
 import java.util.Random;
+import java.io.File;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.swing.JOptionPane;
+
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
@@ -46,6 +52,7 @@ public class Cena implements GLEventListener {
     }
 
     private void drawGame(GL2 gl, GLUT glut){
+        String filepath = "ball.wav";
         float xL = pad.getxLeft();
         float xR = pad.getxRight();
         float y = pad.getY();
@@ -63,7 +70,7 @@ public class Cena implements GLEventListener {
 
         if (ballX >= 14.2f || ballX <= -14.2f) 
             ballVelX = -ballVelX;
-
+            PlayMusic(filepath);
         if (ballY >= 8.0f) 
             ballVelY = -ballVelY;
         else if (ballY < -8.9f)
@@ -130,5 +137,22 @@ public class Cena implements GLEventListener {
     }    
        
     @Override
-    public void dispose(GLAutoDrawable drawable) {}         
+    public void dispose(GLAutoDrawable drawable) {}       
+    
+    public static void PlayMusic(String location){
+        try {
+            File musicPath = new File(location);
+
+            if(musicPath.exists()){
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(musicPath);
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInput);
+                clip.start();
+            }else{
+                System.out.println("Arquivo não encontrado");
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
 }
