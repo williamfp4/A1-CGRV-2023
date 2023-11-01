@@ -7,18 +7,24 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.swing.JOptionPane;
 
+// import com.jogamp.graph.font.Font;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.glu.GLU;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.gl2.GLUT;
+import java.awt.Color;
+import java.awt.Font;
 /**
  *
  * @author William Franz
  */
 public class Cena implements GLEventListener {    
-    private float xMin, xMax, yMin, yMax, zMin, zMax, ballX, ballY;
+    private float xMin, xMax, yMin, yMax, zMin, zMax, ballX, ballY,points,playerLife;
     public float movePaddle, ballVelX, ballVelY, ballSpeed, colorR, colorG, colorB, mouseX, larguraFrame, alturaFrame;
+    private TextRenderer textRenderer;
+
     Paddle pad = new Paddle(-1.5f, 1.5f, 0.2f);
     Random rn = new Random();
     GLU glu;
@@ -26,6 +32,10 @@ public class Cena implements GLEventListener {
     @Override
     public void init(GLAutoDrawable drawable) {
         glu = new GLU();
+       
+        textRenderer = new TextRenderer(new Font("Comic Sans MS Negrito", Font.PLAIN, 15));
+        points = 0;
+playerLife = 3;
         //Estabelece as coordenadas do SRU (Sistema de Referencia do Universo)
         xMin = yMin = zMin = -8;
         xMax = yMax = zMax = 8;
@@ -56,6 +66,28 @@ public class Cena implements GLEventListener {
         float xL = pad.getxLeft();
         float xR = pad.getxRight();
         float y = pad.getY();
+        textRenderer.beginRendering(Renderer.screenWidth, Renderer.screenHeight);       
+        textRenderer.setColor(Color.BLUE);
+        textRenderer.draw( Float.toString(points), 0, 0);
+        textRenderer.endRendering();
+        textRenderer.beginRendering(Renderer.screenWidth, Renderer.screenHeight);       
+        textRenderer.setColor(Color.BLUE);
+        String lifeText = Float.toString(playerLife) + " \u2665";
+        textRenderer.draw(lifeText, 0, 10);
+        textRenderer.endRendering();
+
+        float scale = 1280 / 20.0f;
+
+        gl.glColor3f(1f, 0f, 0f); 
+        gl.glBegin(GL2.GL_POINTS);
+        
+        for (float t = 0.0f; t <= 2 * Math.PI; t += 0.01f) {
+            float x = 16 * (float) Math.pow(Math.sin(t), 3);
+            float yt = 13 * (float) Math.cos(t) - 5 * (float) Math.cos(2*t) - 2 * (float) Math.cos(3*t) - (float) Math.cos(4*t);
+            gl.glVertex2d(x / scale, yt / scale);
+        }
+        
+        gl.glEnd();
         gl.glColor3f(0.0f,0.5f,0.5f);
         gl.glPushMatrix();
             gl.glTranslatef(movePaddle, -6.0f, 0.0f);
@@ -66,15 +98,26 @@ public class Cena implements GLEventListener {
                 gl.glVertex2f(xL, y);
             gl.glEnd();
         gl.glPopMatrix();
+        if(playerLife<=0){
+            textRenderer.beginRendering(Renderer.screenWidth, Renderer.screenHeight);       
+            textRenderer.setColor(Color.BLUE);
+            textRenderer.draw( "Você perdeu!", 500, 500);
+            textRenderer.endRendering();
+            // System.exit(0);
+        }
 
-
-        if (ballX >= 14.2f || ballX <= -14.2f) 
+        if (ballX >= 14.2f || ballX <= -14.2f) {
             ballVelX = -ballVelX;
             PlayMusic(filepath);
-        if (ballY >= 8.0f) 
+        }
+        if (ballY >= 8.0f) {
             ballVelY = -ballVelY;
+            points += 100;
+            PlayMusic(filepath);
+        }
         else if (ballY < -8.9f)
         {
+            playerLife -= 1;
             ballX = 0f; ballY = 5f;
             ballSpeed = 0.125f;
             ballVelX = -ballVelX;

@@ -41,8 +41,7 @@ public class Renderer {
                 animator.stop();
                 System.exit(0);
             }
-        });       
-        
+        });     
         // Se preferir colocar em Janela, mudar para false
         window.setFullscreen(true);        
         window.setVisible(true);
