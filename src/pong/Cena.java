@@ -1,12 +1,9 @@
 package pong;
-
 import java.util.Random;
 import java.io.File;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-import javax.swing.JOptionPane;
-
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
@@ -20,6 +17,7 @@ public class Cena implements GLEventListener {
     private float xMin, xMax, yMin, yMax, zMin, zMax, ballX, ballY;
     public float movePaddle, ballVelX, ballVelY, ballSpeed, colorR, colorG, colorB, mouseX, larguraFrame, alturaFrame;
     Paddle pad = new Paddle(-1.5f, 1.5f, 0.2f);
+    String ballSound = "A1-CGRV-2023/ball.wav";
     Random rn = new Random();
     GLU glu;
         
@@ -52,7 +50,6 @@ public class Cena implements GLEventListener {
     }
 
     private void drawGame(GL2 gl, GLUT glut){
-        String filepath = "ball.wav";
         float xL = pad.getxLeft();
         float xR = pad.getxRight();
         float y = pad.getY();
@@ -69,10 +66,15 @@ public class Cena implements GLEventListener {
 
 
         if (ballX >= 14.2f || ballX <= -14.2f) 
+        {
             ballVelX = -ballVelX;
-            PlayMusic(filepath);
+            playSound(ballSound);
+        }
         if (ballY >= 8.0f) 
+        {
             ballVelY = -ballVelY;
+            playSound(ballSound);
+        }
         else if (ballY < -8.9f)
         {
             ballX = 0f; ballY = 5f;
@@ -101,6 +103,7 @@ public class Cena implements GLEventListener {
             ballVelX = ballSpeed * (float) Math.cos(bounceAngle);
             // Utilizando o seno do ângulo, decompomos a velocidade vertical (Eixo Y)
             ballVelY = -ballSpeed * (float) Math.sin(bounceAngle);
+            playSound(ballSound);
         }   
 
         gl.glColor3f(colorR,colorG,colorB);
@@ -139,17 +142,17 @@ public class Cena implements GLEventListener {
     @Override
     public void dispose(GLAutoDrawable drawable) {}       
     
-    public static void PlayMusic(String location){
+    public static void playSound(String location){
         try {
-            File musicPath = new File(location);
+            File file = new File(location);
 
-            if(musicPath.exists()){
-                AudioInputStream audioInput = AudioSystem.getAudioInputStream(musicPath);
+            if(file.exists()){
+                AudioInputStream audio = AudioSystem.getAudioInputStream(file);
                 Clip clip = AudioSystem.getClip();
-                clip.open(audioInput);
+                clip.open(audio);
                 clip.start();
             }else{
-                System.out.println("Arquivo não encontrado");
+                System.out.println("Arquivo não encontrado! Verifique se o áudio se encontra dentro da pasta Raiz do projeto.");
             }
         } catch (Exception e) {
             System.out.println(e);
