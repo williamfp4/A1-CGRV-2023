@@ -1,37 +1,49 @@
 package pong;
 import java.util.Random;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.gl2.GLUT;
+import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 /**
  *
  * @author William Franz
  */
 public class Cena implements GLEventListener {    
     private float xMin, xMax, yMin, yMax, zMin, zMax, ballX, ballY;
-    public float movePaddle, ballVelX, ballVelY, ballSpeed, colorR, colorG, colorB, mouseX, larguraFrame, alturaFrame;
+    private String ballSound = "A1-CGRV-2023/ball.wav";
+    public float movePaddle, ballVelX, ballVelY, ballSpeed, mouseX, larguraFrame, alturaFrame;
+    public int pkmnHealth;
     Paddle pad = new Paddle(-1.5f, 1.5f, 0.2f);
-    String ballSound = "A1-CGRV-2023/ball.wav";
     Random rn = new Random();
+    Texture texture;
     GLU glu;
         
     @Override
     public void init(GLAutoDrawable drawable) {
         glu = new GLU();
+        texture = new Texture(pkmnHealth);
         //Estabelece as coordenadas do SRU (Sistema de Referencia do Universo)
         xMin = yMin = zMin = -8;
         xMax = yMax = zMax = 8;
         movePaddle = 0;
-        colorR = 0.5f;
-        colorG = colorB = 0f;
         ballX = ballY = -0.05f;
         ballSpeed = ballVelX = ballVelY = 0.125f;
+        pkmnHealth = 0;
     }
 
     @Override
@@ -41,20 +53,80 @@ public class Cena implements GLEventListener {
         gl.glClearColor(0, 0, 0, 0);
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT);       
         gl.glLoadIdentity(); 
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
         // REVER O POLYGON MODE NAS PRÓXIMAS IMPLEMENTAÇÕES
-        gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
+        //gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
+        int num = rn.nextInt(1000) + 1;
+        try {
+            if(pkmnHealth == 0){
+                texture = getPokeImage(gl, num);
+                pkmnHealth = 100;
+            }
+            gl.glPushMatrix();
+                texture.enable(gl);
+                texture.bind(gl);
+                gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_DECAL);
+                gl.glRotatef(180, 1, 0, 0);
+                gl.glColor3f(0f, 0f, 0f);
+                gl.glTranslatef(9, -5, 0);
+                gl.glBegin(GL2.GL_QUADS);
+                    gl.glTexCoord2f(0, 0);
+                    gl.glVertex2d(-1, -1);
+
+                    gl.glTexCoord2f(1, 0);
+                    gl.glVertex2d(1, -1);
+
+                    gl.glTexCoord2f(1, 1);
+                    gl.glVertex2d(1, 1);
+
+                    gl.glTexCoord2f(0, 1);
+                    gl.glVertex2d(-1, 1);
+                gl.glEnd();
+
+                texture.disable(gl);
+            gl.glPopMatrix();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         drawGame(gl,glut);
-
+    
         gl.glFlush();
+    }
+
+    private Texture getPokeImage(GL2 gl, int dexNumber) throws IOException {
+        String getPkmn = "https://pokeapi.co/api/v2/pokemon/" + dexNumber + "/";
+        URL url = new URL(getPkmn);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        StringBuilder response = new StringBuilder();
+        String line;
+
+        while ((line = reader.readLine()) != null) {
+            response.append(line);
+        }
+
+        reader.close();
+
+        String json = response.toString();
+        String imageUrl = json.split("\"front_default\":\"")[1].split("\"")[0];
+
+        URL imgURL = new URL(imageUrl);
+        BufferedImage img = ImageIO.read(imgURL);
+
+        Texture texture = AWTTextureIO.newTexture(GLProfile.getDefault(), img, true);
+
+        return texture;
     }
 
     private void drawGame(GL2 gl, GLUT glut){
         float xL = pad.getxLeft();
         float xR = pad.getxRight();
         float y = pad.getY();
-        gl.glColor3f(0.0f,0.5f,0.5f);
         gl.glPushMatrix();
+            gl.glColor3f(0.0f,0.5f,0.5f);
             gl.glTranslatef(movePaddle, -6.0f, 0.0f);
             gl.glBegin(GL2.GL_QUADS);
                 gl.glVertex2f(xL, -y);
@@ -65,12 +137,12 @@ public class Cena implements GLEventListener {
         gl.glPopMatrix();
 
 
-        if (ballX >= 14.2f || ballX <= -14.2f) 
+        if (ballX >= 14f || ballX <= -14f) 
         {
             ballVelX = -ballVelX;
             playSound(ballSound);
         }
-        if (ballY >= 8.0f) 
+        if (ballY >= 7.95f) 
         {
             ballVelY = -ballVelY;
             playSound(ballSound);
@@ -105,11 +177,11 @@ public class Cena implements GLEventListener {
             ballVelY = -ballSpeed * (float) Math.sin(bounceAngle);
             playSound(ballSound);
         }   
-
-        gl.glColor3f(colorR,colorG,colorB);
-        gl.glTranslatef(ballX, ballY, 0.0f);
+        
         gl.glPushMatrix();
-            glut.glutSolidSphere(0.2f, 70, 50);
+            gl.glColor3f(1.0f,0f,0f);
+            gl.glTranslatef(ballX, ballY, 0.0f);
+            glut.glutSolidSphere(0.3f, 70, 50);
         gl.glPopMatrix();
 
         ballX -= ballVelX;
