@@ -22,7 +22,7 @@ public class Renderer {
         GLCapabilities caps = new GLCapabilities(profile);        
         window = GLWindow.create(caps);
         window.setSize(screenWidth, screenHeight);
-        //window.setResizable(false);
+        window.setTitle("PokéOut");
         
         Cena cena = new Cena();
         Input inputs = new Input(cena);
@@ -44,7 +44,7 @@ public class Renderer {
         });       
         
         // Se preferir colocar em Janela, mudar para false
-        window.setFullscreen(true);        
+        window.setFullscreen(false);
         window.setVisible(true);
     }
   

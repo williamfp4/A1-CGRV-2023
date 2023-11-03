@@ -20,20 +20,18 @@ public class Input extends MouseAdapter implements KeyListener{
     @Override
     public void keyPressed(KeyEvent e) {
         // Fechar o jogo
-        if(e.getKeyCode() == KeyEvent.VK_ESCAPE)
+        if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
             System.exit(0);
+        }
         // Menu do jogo
-        if(e.getKeyCode() == KeyEvent.VK_ENTER)
-        {   
+        if(e.getKeyCode() == KeyEvent.VK_ENTER){   
             stop = !stop;
-            if (cena.ballVelX != 0)
-            {
+            if (cena.ballVelX != 0){
                 velX = cena.ballVelX;
                 velY = cena.ballVelY;
                 cena.ballVelX = cena.ballVelY = 0;
             }
-            else
-            {
+            else{
                 cena.ballVelX = velX;
                 cena.ballVelY = velY;
             }
@@ -43,19 +41,19 @@ public class Input extends MouseAdapter implements KeyListener{
     @Override
     public void mouseMoved(MouseEvent e) {
         mouseX = (float)e.getX();
-        if(stop != true)
+        if(stop != true){
             cena.movePaddle = ( (2 * 12.7f * mouseX) / cena.larguraFrame) - 12.7f;
+        }
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {   
         int botao = e.getButton();
-        if(stop == true && botao == MouseEvent.BUTTON1)
-        {
+        if(stop == true && botao == MouseEvent.BUTTON1){
             mouseX = ((2 * 12.7f * (float)e.getX()) / cena.larguraFrame) - 12.7f;
             mouseY = (((2 * 10f * (float)e.getY()) / cena.alturaFrame) - 10f) * -1;
-            if((mouseX >= -3 && mouseX <= 3) && (mouseY >= 4 && mouseY <= 6))
-            {
+
+            if((mouseX >= -3 && mouseX <= 3) && (mouseY >= 4 && mouseY <= 6)){
                 System.out.println("You pressed an invisible button!");
                 cena.ballVelX = velX;
                 cena.ballVelY = velY;

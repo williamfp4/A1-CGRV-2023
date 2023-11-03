@@ -14,7 +14,6 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
-
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
@@ -28,17 +27,18 @@ import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
  * @author William Franz
  */
 public class Cena implements GLEventListener {    
-    public float movePaddle, ballVelX, ballVelY, ballSpeed, mouseX, larguraFrame, alturaFrame;
+    public float movePaddle, ballVelX, ballVelY, ballSpeed, mouseX, root, larguraFrame, alturaFrame;
     public int pkmnHealth, gen;
-    private float xMin, xMax, yMin, yMax, zMin, zMax, ballX, ballY;
+    private float xMin, xMax, yMin, yMax, zMin, zMax, aspect, ballX, ballY;
     private String ballSound;
-    private String[] music = new String[]{"A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r101.wav","A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r1Kanto.wav"};
+    private String[] background = new String[]{"A1-CGRV-2023/images/kanto.jpg","A1-CGRV-2023/images/johto.png","A1-CGRV-2023/images/hoenn.jpg","A1-CGRV-2023/images/kanto.jpg","A1-CGRV-2023/images/kanto.jpg"};
+    private String[] music = new String[]{"A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r101.wav","A1-CGRV-2023/audio/r29.wav","A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r1Kanto.wav"};
     private Clip soundTrack, ball;
     private boolean levelChange;
-    
+    BufferedImage image;
     Paddle pad = new Paddle(-1.5f, 1.5f, 0.2f);
     Random rn = new Random();
-    Texture texture;
+    Texture texture, scene;
     GLU glu;
         
     @Override
@@ -53,10 +53,10 @@ public class Cena implements GLEventListener {
         ballSpeed = ballVelX = ballVelY = 0.125f;
         pkmnHealth = 0;
         gen = 1;
-        ballSound = "A1-CGRV-2023/audio/ball.wav"; // Kanto = Route1; Johto = Route 101; Hoenn = Route 29; Sinnoh = Route 201
+        root = (float) xMax * aspect;
+        ballSound = "A1-CGRV-2023/audio/ball.wav"; // Kanto = kanto1; Johto = kanto 101; Hoenn = kanto 29; Sinnoh = kanto 201
         try {
             soundTrack = playSound(music[0],0.0f);
-            ball = playSound(ballSound, -10.0f);
         } catch (LineUnavailableException | UnsupportedAudioFileException | IOException e) {
             e.printStackTrace();
         }
@@ -70,64 +70,37 @@ public class Cena implements GLEventListener {
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT);       
         gl.glLoadIdentity(); 
         gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glEnable(GL2.GL_BLEND);
+        gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);
         // REVER O POLYGON MODE NAS PRÓXIMAS IMPLEMENTAÇÕES
         //gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
 
         try {
             ball = playSound(ballSound, -10.0f);
-            if(pkmnHealth == 0){
-                int num = 0;
-                switch (gen) {
-                    case 1: num = rn.nextInt(151) + 1; break; //Kanto
-                    case 2: num = rn.nextInt(100) + 152; break; //Johto
-                    default: num = rn.nextInt(649) + 1; break;
-                }
-                texture = getPokeImage(gl, num);
-                pkmnHealth = 100;
-                levelChange = true;
-            }
-
-            if(levelChange){
-                if(gen == 4){
-                    gen = 1;
-                }
-                soundTrack.stop();
-                soundTrack = playSound(music[gen-1],0.0f);
-                soundTrack.start();
-                levelChange = false;
-                gen++;
-            }
-
-            gl.glPushMatrix();
-                texture.enable(gl);
-                texture.bind(gl);
-                gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_DECAL);
-                gl.glRotatef(180, 1, 0, 0);
-                gl.glColor3f(0f, 0f, 0f);
-                gl.glTranslatef(9, -5, 0);
-                gl.glBegin(GL2.GL_QUADS);
-                    gl.glTexCoord2f(0, 0);
-                    gl.glVertex2d(-3, -3);
-
-                    gl.glTexCoord2f(1, 0);
-                    gl.glVertex2d(3, -3);
-
-                    gl.glTexCoord2f(1, 1);
-                    gl.glVertex2d(3, 3);
-
-                    gl.glTexCoord2f(0, 1);
-                    gl.glVertex2d(-3, 3);
-                gl.glEnd();
-
-                texture.disable(gl);
-            gl.glPopMatrix();
+            if(pkmnHealth == 0) encounter(gl);
+            if(levelChange) changeLevel();
         } catch (LineUnavailableException | UnsupportedAudioFileException | IOException e) {
             e.printStackTrace();
         }
-
+        
+        drawScene(gl);
+        drawPkmn(gl);
         drawGame(gl,glut);
     
         gl.glFlush();
+    }
+
+    private void encounter(GL2 gl) throws IOException {
+        int num = 0;
+        switch (gen) {
+            case 1: num = rn.nextInt(151) + 1; break; //Kanto
+            case 2: num = rn.nextInt(100) + 152; break; //Johto
+            case 3: num = rn.nextInt(135) + 252; break; //Hoenn
+            default: num = rn.nextInt(649) + 1; break;
+        }
+        texture = getPokeImage(gl, num);
+        pkmnHealth = 100;
+        levelChange = true;
     }
 
     private Texture getPokeImage(GL2 gl, int dexNumber) throws IOException {
@@ -155,6 +128,41 @@ public class Cena implements GLEventListener {
         Texture texture = AWTTextureIO.newTexture(GLProfile.getDefault(), img, true);
 
         return texture;
+    }
+
+    private void drawPkmn(GL2 gl){
+        gl.glPushMatrix();
+            texture.enable(gl);
+            texture.bind(gl);
+            gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
+            gl.glRotatef(180, 1, 0, 0);
+            gl.glTranslatef(9, -5, 0);
+            gl.glColor4f(0, 0, 0, 1f);
+            gl.glBegin(GL2.GL_QUADS);
+                gl.glTexCoord2f(0, 0); gl.glVertex2f(-3, -3);
+                gl.glTexCoord2f(1, 0); gl.glVertex2f(3, -3);
+                gl.glTexCoord2f(1, 1); gl.glVertex2f(3, 3);
+                gl.glTexCoord2f(0, 1); gl.glVertex2f(-3, 3);
+            gl.glEnd();
+            texture.disable(gl);
+        gl.glPopMatrix();
+    }
+
+    private void drawScene(GL2 gl){
+        gl.glPushMatrix();
+            scene = AWTTextureIO.newTexture(gl.getGLProfile(), image, false);
+            scene.enable(gl);
+            scene.bind(gl);
+            gl.glRotatef(180, 1, 0, 0);
+            gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_DECAL);
+            gl.glBegin(GL2.GL_QUADS);
+                gl.glTexCoord2f(0, 0); gl.glVertex2f(xMin*aspect, yMin);
+                gl.glTexCoord2f(1, 0); gl.glVertex2f(xMax*aspect, yMin);
+                gl.glTexCoord2f(1, 1); gl.glVertex2f(xMax*aspect, yMax);
+                gl.glTexCoord2f(0, 1); gl.glVertex2f(xMin*aspect, yMax);
+            gl.glEnd();
+            scene.disable(gl);
+        gl.glPopMatrix();
     }
 
     private void drawGame(GL2 gl, GLUT glut){
@@ -226,12 +234,38 @@ public class Cena implements GLEventListener {
         ballY += ballVelY;
     }
 
+    private void changeLevel() throws LineUnavailableException, UnsupportedAudioFileException, IOException {
+        if(gen == 4){
+            gen = 1;
+        }
+        soundTrack.stop();
+        soundTrack = playSound(music[gen-1],0.0f);
+        soundTrack.start();
+        levelChange = false;
+        image = ImageIO.read(new File(background[gen-1]));
+        gen++;
+    }
+    
+    public static Clip playSound(String location, float volume) throws LineUnavailableException, UnsupportedAudioFileException, IOException{
+        File file = new File(location);
+        Clip clip = AudioSystem.getClip();
+
+        if(!(file.exists())){
+            System.out.println("Arquivo não encontrado! Verifique se o áudio se encontra dentro da pasta Raiz do projeto.");
+        }
+        AudioInputStream audio = AudioSystem.getAudioInputStream(file);
+        clip.open(audio);
+        FloatControl vol = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+        vol.setValue(volume);
+        return clip;
+    }
+
     @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {    
         GL2 gl = drawable.getGL().getGL2();  
         
         if(height == 0) height = 1;
-        float aspect = (float) width / height;
+        aspect = (float) width / height;
         gl.glViewport(0, 0, width, height);
         gl.glMatrixMode(GL2.GL_PROJECTION);      
         gl.glLoadIdentity(); 
@@ -251,18 +285,4 @@ public class Cena implements GLEventListener {
        
     @Override
     public void dispose(GLAutoDrawable drawable) {}       
-    
-    public static Clip playSound(String location, float volume) throws LineUnavailableException, UnsupportedAudioFileException, IOException{
-        File file = new File(location);
-        Clip clip = AudioSystem.getClip();
-
-        if(!(file.exists())){
-            System.out.println("Arquivo não encontrado! Verifique se o áudio se encontra dentro da pasta Raiz do projeto.");
-        }
-        AudioInputStream audio = AudioSystem.getAudioInputStream(file);
-        clip.open(audio);
-        FloatControl vol = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        vol.setValue(volume);
-        return clip;
-    }
 }
