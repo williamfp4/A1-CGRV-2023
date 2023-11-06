@@ -31,8 +31,8 @@ public class Cena implements GLEventListener {
     public int pkmnHealth, gen;
     private float xMin, xMax, yMin, yMax, zMin, zMax, aspect, ballX, ballY;
     private String ballSound;
-    private String[] background = new String[]{"A1-CGRV-2023/images/kanto.jpg","A1-CGRV-2023/images/johto.png","A1-CGRV-2023/images/hoenn.jpg","A1-CGRV-2023/images/kanto.jpg","A1-CGRV-2023/images/kanto.jpg"};
-    private String[] music = new String[]{"A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r101.wav","A1-CGRV-2023/audio/r29.wav","A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r1Kanto.wav"};
+    private String[] background = new String[]{"A1-CGRV-2023/images/kanto.jpg","A1-CGRV-2023/images/johto.jpg","A1-CGRV-2023/images/hoenn.jpg","A1-CGRV-2023/images/sinnoh.jpg","A1-CGRV-2023/images/unova.jpg"};
+    private String[] music = new String[]{"A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r101.wav","A1-CGRV-2023/audio/r29.wav","A1-CGRV-2023/audio/r201.wav","A1-CGRV-2023/audio/r1Unova.wav"};
     private Clip soundTrack, ball;
     private boolean levelChange;
     BufferedImage image;
@@ -96,6 +96,8 @@ public class Cena implements GLEventListener {
             case 1: num = rn.nextInt(151) + 1; break; //Kanto
             case 2: num = rn.nextInt(100) + 152; break; //Johto
             case 3: num = rn.nextInt(135) + 252; break; //Hoenn
+            case 4: num = rn.nextInt(107) + 387; break; //Sinnoh
+            case 5: num = rn.nextInt(156) + 494; break; //Sinnoh
             default: num = rn.nextInt(649) + 1; break;
         }
         texture = getPokeImage(gl, num);
@@ -235,7 +237,7 @@ public class Cena implements GLEventListener {
     }
 
     private void changeLevel() throws LineUnavailableException, UnsupportedAudioFileException, IOException {
-        if(gen == 4){
+        if(gen == 6){
             gen = 1;
         }
         soundTrack.stop();
