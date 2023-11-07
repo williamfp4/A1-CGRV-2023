@@ -35,10 +35,10 @@ public class Cena implements GLEventListener {
     private String[] music = new String[]{"A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r101.wav","A1-CGRV-2023/audio/r29.wav","A1-CGRV-2023/audio/r201.wav","A1-CGRV-2023/audio/r1Unova.wav"};
     private Clip soundTrack, ball;
     private boolean levelChange;
-    BufferedImage image;
+    BufferedImage image, ballImage;
     Paddle pad = new Paddle(-1.5f, 1.5f, 0.2f);
     Random rn = new Random();
-    Texture texture, scene;
+    Texture texture, scene, pokeBall;
     GLU glu;
         
     @Override
@@ -56,6 +56,7 @@ public class Cena implements GLEventListener {
         root = (float) xMax * aspect;
         ballSound = "A1-CGRV-2023/audio/ball.wav"; // Kanto = kanto1; Johto = kanto 101; Hoenn = kanto 29; Sinnoh = kanto 201
         try {
+            ballImage = ImageIO.read(new File("A1-CGRV-2023/images/pokeball.png"));
             soundTrack = playSound(music[0],0.0f);
         } catch (LineUnavailableException | UnsupportedAudioFileException | IOException e) {
             e.printStackTrace();
@@ -225,10 +226,22 @@ public class Cena implements GLEventListener {
             ballVelY = -ballSpeed * (float) Math.sin(bounceAngle);
             ball.start();
         }   
-        
+
         gl.glPushMatrix();
             gl.glColor3f(1.0f,0f,0f);
             gl.glTranslatef(ballX, ballY, 0.0f);
+            gl.glRotatef(180, 1, 0, 0);
+            /* gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
+            pokeBall = AWTTextureIO.newTexture(gl.getGLProfile(), ballImage, false);
+            pokeBall.enable(gl);
+            pokeBall.bind(gl);
+            gl.glBegin(GL2.GL_QUADS);
+                gl.glTexCoord2f(0, 0); gl.glVertex2f(0, 0);
+                gl.glTexCoord2f(1, 0); gl.glVertex2f(1f, 0);
+                gl.glTexCoord2f(1, 1); gl.glVertex2f(1f, 1f);
+                gl.glTexCoord2f(0, 1); gl.glVertex2f(0, 1f);
+            gl.glEnd();
+            pokeBall.disable(gl); */
             glut.glutSolidSphere(0.3f, 70, 50);
         gl.glPopMatrix();
 
