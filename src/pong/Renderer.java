@@ -12,8 +12,8 @@ import com.jogamp.opengl.util.FPSAnimator;
  */
 public class Renderer {
     private static GLWindow window = null;
-    public static int screenWidth = 1366;
-    public static int screenHeight = 768; 
+    public static int screenWidth = 1280;
+    public static int screenHeight = 720; 
 
     //Cria a janela de rendeziração do JOGL
     public static void init(){        
@@ -22,7 +22,7 @@ public class Renderer {
         GLCapabilities caps = new GLCapabilities(profile);        
         window = GLWindow.create(caps);
         window.setSize(screenWidth, screenHeight);
-        //window.setResizable(false);
+        window.setTitle("PokéOut");
         
         Cena cena = new Cena();
         Input inputs = new Input(cena);
@@ -44,7 +44,7 @@ public class Renderer {
         });       
         
         // Se preferir colocar em Janela, mudar para false
-        window.setFullscreen(true);        
+        window.setFullscreen(false);
         window.setVisible(true);
     }
   
