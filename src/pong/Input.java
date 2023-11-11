@@ -36,9 +36,6 @@ public class Input extends MouseAdapter implements KeyListener{
                 cena.ballVelY = velY;
             }
         }
-        if(e.getKeyCode() == KeyEvent.VK_SPACE){
-            cena.ballSpin += 1;
-        }
     }
 
     @Override

@@ -28,9 +28,9 @@ import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
  * @author William Franz
  */
 public class Cena implements GLEventListener {    
-    public float movePaddle, ballVelX, ballVelY, ballSpeed, mouseX, root, larguraFrame, alturaFrame, ballSpin;
+    public float movePaddle, ballVelX, ballVelY, ballSpeed, mouseX, root, larguraFrame, alturaFrame;
     public int pkmnHealth, gen;
-    private float xMin, xMax, yMin, yMax, zMin, zMax, aspect, ballX, ballY;
+    private float xMin, xMax, yMin, yMax, zMin, zMax, aspect, ballX, ballY, ballSpin, spinY;
     private String ballSound;
     private String[] background = new String[]{"A1-CGRV-2023/images/kanto.jpg","A1-CGRV-2023/images/johto.jpg","A1-CGRV-2023/images/hoenn.jpg","A1-CGRV-2023/images/sinnoh.jpg","A1-CGRV-2023/images/unova.jpg"};
     private String[] music = new String[]{"A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r101.wav","A1-CGRV-2023/audio/r29.wav","A1-CGRV-2023/audio/r201.wav","A1-CGRV-2023/audio/r1Unova.wav"};
@@ -53,6 +53,7 @@ public class Cena implements GLEventListener {
         ballX = ballY = -0.05f;
         ballSpeed = ballVelX = ballVelY = 0.125f;
         ballSpin = 1;
+        spinY = 0;
         pkmnHealth = 0;
         gen = 1;
         root = (float) xMax * aspect;
@@ -65,7 +66,7 @@ public class Cena implements GLEventListener {
         }
     }
 
-    @Override
+    @Override   
     public void display(GLAutoDrawable drawable) {  
         GLUT glut = new GLUT();
         GL2 gl = drawable.getGL().getGL2();      
@@ -233,25 +234,29 @@ public class Cena implements GLEventListener {
             gl.glColor3f(1.0f,0f,0f);
             gl.glTranslatef(ballX, ballY, 0.0f);
             gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
-            gl.glTexParameteri(1, GL2.GL_TEXTURE_WRAP_S, GL2.GL_REPEAT);
             pokeBall = AWTTextureIO.newTexture(gl.getGLProfile(), ballImage, false);
             pokeBall.enable(gl);
             pokeBall.bind(gl);
-            gl.glRotatef(86 , 1, 0, 0);
-            gl.glRotatef(ballSpin,1,0,1);
+            gl.glRotatef(90 , 1, 0, 0);
+            gl.glRotatef(ballSpin,0,0,1);
+            gl.glRotatef(spinY, 0,1,0);
+            if(ballSpin >= 360.0f){
+                ballSpin = 0;
+            }
             glu = new GLU();   
                 GLUquadric quadObj = glu.gluNewQuadric();   
                 glu.gluQuadricDrawStyle(quadObj, GLU.GLU_FILL);   
-                glu.gluQuadricNormals(quadObj, GLU.GLU_SMOOTH);   
+                glu.gluQuadricNormals(quadObj, GLU.GLU_FLAT);   
                 glu.gluQuadricTexture(quadObj, true); 
-                glu.gluQuadricNormals(quadObj, GLU.GLU_SMOOTH);
-                glu.gluSphere(quadObj, 0.3f, 30, 30);
+                glu.gluQuadricNormals(quadObj, GLU.GLU_FLAT);
+                glu.gluSphere(quadObj, 0.3f, 30, 50);
             pokeBall.disable(gl);
         gl.glPopMatrix();
-
+        System.out.println(spinY);
         ballX -= ballVelX;
         ballY += ballVelY;
-        ballSpin ++;
+        ballSpin += 1;
+        spinY += 3;
     }
 
     private void changeLevel() throws LineUnavailableException, UnsupportedAudioFileException, IOException {
