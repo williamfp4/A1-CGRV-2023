@@ -23,6 +23,10 @@ public class Input extends MouseAdapter implements KeyListener{
         if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
             Menu.gameStart = !Menu.gameStart;
         }
+        if(e.getKeyCode() == KeyEvent.VK_END){
+            Renderer.stopAnimator();
+            System.exit(0);
+        }
     }
 
     @Override

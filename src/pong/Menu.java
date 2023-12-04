@@ -89,6 +89,27 @@ public class Menu {
         drawText(gl,"Sair", color[2], 30, 612, 150);
     }
 
+    public static void showRules(GL2 gl){
+        gl.glColor4f(1, 1, 1, 1f);
+        gl.glBegin(GL2.GL_QUADS);
+            gl.glVertex2f(-6, -6);
+            gl.glVertex2f(-6, 3);
+            gl.glVertex2f(6, 3);
+            gl.glVertex2f(6, -6);
+        gl.glEnd();
+        drawText(gl, "Regras", Color.ORANGE, 30, 586, 450);
+        drawText(gl, "-Para movimentar o bastão utilize o mouse;", Color.BLACK, 20, 420, 410);
+        drawText(gl, "-Receba 50 pontos a cada rebatida de bola;", Color.BLACK, 20, 420, 380);
+        drawText(gl, "-Um pokémon aparece a cada 200 pontos;", Color.BLACK, 20, 420, 350);
+        drawText(gl, "-Os pokémons tem 100 pontos de vida;", Color.BLACK, 20, 420, 320);
+        drawText(gl, "-O pokémon recebe 25 de dano se atingido;", Color.BLACK, 20, 420, 290);
+        drawText(gl, "-São capturados os que chegarem a 0 de vida;", Color.BLACK, 20, 420, 260);
+        drawText(gl, "-O jogador ganha 100 pontos a cada captura;", Color.BLACK, 20, 420, 230);
+        drawText(gl, "-Caso perca 5 pokébolas, o jogo acaba.", Color.BLACK, 20, 420, 200);
+        drawText(gl, "ESC = Pause/Play        END = Sair do jogo", Color.RED, 20, 435, 160);
+        drawText(gl, "< Voltar >", Color.BLUE, 25, 580, 115);
+    }
+
     public static void drawText(GL2 gl, String text, Color color, int size, int x, int y) {
         textRenderer = new TextRenderer(new Font(Font.SANS_SERIF, Font.BOLD, size));
         gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);

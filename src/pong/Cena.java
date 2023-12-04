@@ -31,9 +31,9 @@ import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 public class Cena implements GLEventListener {    
     public float movePaddle, ballVelX, ballVelY, ballSpeed, mouseX, root, larguraFrame, alturaFrame;
     public float xMin, xMax, yMin, yMax, zMin, zMax, aspect;
-    private int pkmnHealth, hit, points, gen, lives;
+    private int pkmnHealth, hit, points, gen, rotate, lives;
     private float ballX, ballY, ballSpin, spinY;
-    private String ballSound;
+    private String ballSound, pkmnType;
     private String[] background = new String[]{"A1-CGRV-2023/images/kanto.jpg","A1-CGRV-2023/images/johto.jpg","A1-CGRV-2023/images/hoenn.jpg","A1-CGRV-2023/images/sinnoh.jpg","A1-CGRV-2023/images/unova.jpg"};
     private String[] music = new String[]{"A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r101.wav","A1-CGRV-2023/audio/r29.wav","A1-CGRV-2023/audio/r201.wav","A1-CGRV-2023/audio/r1Unova.wav"};
     private Clip soundTrack, ball;
@@ -52,19 +52,17 @@ public class Cena implements GLEventListener {
         //Estabelece as coordenadas do SRU (Sistema de Referencia do Universo)
         xMin = yMin = zMin = -8;
         xMax = yMax = zMax = 8;
-        movePaddle = 0;
         ballX = ballY = -0.05f;
         ballSpeed = ballVelX = ballVelY = 0.125f;
         ballSpin = 1;
-        spinY = 0;
         lives = 5;
-        points = 0;
-        hit = pkmnHealth = 0;
-        damage = false;
-        gen = 0;
+        movePaddle = spinY = 0;
+        gen = hit = pkmnHealth = rotate = 0;
         levelChange = true;
-        findPkmn = false;
+        damage = findPkmn = false;
         root = (float) xMax * aspect;
+        points = 150;
+        pkmnType = "";
         ballSound = "A1-CGRV-2023/audio/ball.wav"; // Kanto = kanto1; Johto = kanto 101; Hoenn = kanto 29; Sinnoh = kanto 201
         try {
             ballImage = ImageIO.read(new File("A1-CGRV-2023/images/pokeball2.png"));
@@ -93,7 +91,7 @@ public class Cena implements GLEventListener {
                     soundTrack.start();
                     resumeSound = false;
                 }
-                ball = playSound(ballSound, -30.0f);
+                ball = playSound(ballSound, -5.0f);
                 if(points != 0 && points % 200 == 0){
                     findPkmn = true;
                 } 
@@ -109,17 +107,18 @@ public class Cena implements GLEventListener {
                         hit = 0;
                         encounter(gl);
                         soundTrack.stop();
-                        soundTrack = playSound("A1-CGRV-2023/audio/encounterEffect.wav",-2.0f);
+                        soundTrack = playSound("A1-CGRV-2023/audio/encounterEffect.wav",-5.0f);
                         soundTrack.start();
                         Thread.sleep(2500);
                         soundTrack.stop();
-                        soundTrack = playSound("A1-CGRV-2023/audio/encounter.wav",-5.0f);
+                        soundTrack = playSound("A1-CGRV-2023/audio/encounter.wav",-2.0f);
                         soundTrack.start();
                         image = ImageIO.read(new File("A1-CGRV-2023/images/encounter.jpeg"));
                         pkmnHealth = 100;
                     }else{
                         damage = true;
                         drawPkmn(gl);
+                        drawAttack(gl);
                     }
                 }
 
@@ -142,22 +141,7 @@ public class Cena implements GLEventListener {
                 resumeSound = true;
                 Menu.showMenu(gl);
                 if(Menu.seeRules == true){
-                    gl.glColor4f(1, 1, 1, 1f);
-                    gl.glBegin(GL2.GL_QUADS);
-                        gl.glVertex2f(-6, -6);
-                        gl.glVertex2f(-6, 3);
-                        gl.glVertex2f(6, 3);
-                        gl.glVertex2f(6, -6);
-                    gl.glEnd();
-                    Menu.drawText(gl, "-Para movimentar o bastão utilize o mouse;", Color.BLACK, 20, 420, 440);
-                    Menu.drawText(gl, "-Receba 50 pontos a cada rebatida de bola;", Color.BLACK, 20, 420, 400);
-                    Menu.drawText(gl, "-Um pokémon aparece a cada 200 pontos;", Color.BLACK, 20, 420, 360);
-                    Menu.drawText(gl, "-Os pokémons tem 100 pontos de vida;", Color.BLACK, 20, 420, 320);
-                    Menu.drawText(gl, "-O pokémon recebe 25 de dano se atingido;", Color.BLACK, 20, 420, 280);
-                    Menu.drawText(gl, "-São capturados os que chegarem a 0 de vida;", Color.BLACK, 20, 420, 240);
-                    Menu.drawText(gl, "-O jogador ganha 100 pontos a cada captura;", Color.BLACK, 20, 420, 200);
-                    Menu.drawText(gl, "-Caso perca 5 pokébolas, o jogo acaba.", Color.BLACK, 20, 420, 160);
-                    Menu.drawText(gl, "< Voltar >", Color.BLUE, 25, 580, 115);
+                    Menu.showRules(gl);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -197,6 +181,7 @@ public class Cena implements GLEventListener {
 
         String json = response.toString();
         String imageUrl = json.split("\"front_default\":\"")[1].split("\"")[0];
+        pkmnType = json.split("\"types\":\\[\\{\"slot\":1,\"type\":\\{\"name\":\"")[1].split("\"")[0];
 
         URL imgURL = new URL(imageUrl);
         BufferedImage img = ImageIO.read(imgURL);
@@ -222,6 +207,89 @@ public class Cena implements GLEventListener {
             gl.glEnd();
             texture.disable(gl);
         gl.glPopMatrix();
+    }
+
+    private void drawAttack(GL2 gl){
+        switch(pkmnType){
+            case "normal":   gl.glColor4f(1, 1, 1, 1);    break; // White
+            case "fire":     gl.glColor4f(1, 0, 0, 1);    break; // Red
+            case "water":    gl.glColor4f(0, 0, 1, 1);    break; // Blue
+            case "grass":    gl.glColor4f(0, 1, 0, 1);    break; // Green
+            case "electric": gl.glColor4f(1, 1, 0, 1);    break; // Yellow
+            case "ice":      gl.glColor4f(0, 1, 1, 1);    break; // Cyan
+            case "fighting": gl.glColor4f(0.5f, 0, 0, 1); break; // Dark Red
+            case "poison":   gl.glColor4f(0.5f, 0, 0.5f, 1); break; // Purple
+            case "ground":   gl.glColor4f(0.5f, 0.25f, 0, 1); break; // Brown
+            case "flying":   gl.glColor4f(0.5f, 0.5f, 1, 1); break; // Light Blue
+            case "psychic":  gl.glColor4f(1, 0, 1, 1);    break; // Magenta
+            case "bug":      gl.glColor4f(0.5f, 0.5f, 0, 1); break; // Olive
+            case "rock":     gl.glColor4f(0.5f, 0.25f, 0.1f, 1); break; // Dark Orange
+            case "ghost":    gl.glColor4f(0.5f, 0, 1, 1); break; // Violet
+            case "dragon":   gl.glColor4f(0.5f, 0, 0.5f, 1); break; // Dark Purple
+            case "dark":     gl.glColor4f(0.25f, 0.25f, 0.25f, 1); break; // Dark Gray
+            case "steel":    gl.glColor4f(0.75f, 0.75f, 0.75f, 1); break; // Light Gray
+            case "fairy":    gl.glColor4f(1, 0.75f, 0.75f, 1); break; // Light Pink
+        }
+        // Ativar a iluminação
+        gl.glEnable(GL2.GL_LIGHTING);
+        gl.glEnable(GL2.GL_LIGHT0);
+        gl.glEnable(GL2.GL_COLOR_MATERIAL);
+
+        float[] specularLight = {1.0f, 1.0f, 1.0f, 1.0f};
+        float[] lightPosition = {0.0f, 0.0f, -5.0f, 0.5f};
+        
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, specularLight, 0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
+        
+        gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, specularLight, 0);
+        gl.glMaterialf(GL2.GL_FRONT, GL2.GL_SHININESS, 80.0f);
+
+        gl.glPushMatrix();
+            gl.glTranslatef(-8, 2, 0);
+            gl.glTranslatef(0, -4, 0);  // Translate to the center of the square
+            gl.glRotatef(rotate, 0, 0, 1);  // Rotate around the Z-axis
+            gl.glTranslatef(0, 4, 0);  // Translate back to the original position
+            
+            gl.glBegin(GL2.GL_QUADS);
+                gl.glVertex2f(-2, -4);
+                gl.glVertex2f(0, -6);
+                gl.glVertex2f(2, -4);
+                gl.glVertex2f(0, -2);
+            gl.glEnd(); 
+        gl.glPopMatrix();
+        
+        gl.glPushMatrix();
+            gl.glTranslatef(0, 2, 0);
+            gl.glTranslatef(0, -4, 0);  // Translate to the center of the square
+            gl.glRotatef(rotate, 0, 0, 1);  // Rotate around the Z-axis
+            gl.glTranslatef(0, 4, 0);  // Translate back to the original position
+            
+            gl.glBegin(GL2.GL_QUADS);
+                gl.glVertex2f(-2, -4);
+                gl.glVertex2f(0, -6);
+                gl.glVertex2f(2, -4);
+                gl.glVertex2f(0, -2);
+            gl.glEnd(); 
+        gl.glPopMatrix();
+
+        gl.glPushMatrix();
+            gl.glTranslatef(8, 2, 0);
+            gl.glTranslatef(0, -4, 0);  // Translate to the center of the square
+            gl.glRotatef(rotate, 0, 0, 1);  // Rotate around the Z-axis
+            gl.glTranslatef(0, 4, 0);  // Translate back to the original position
+            
+            gl.glBegin(GL2.GL_QUADS);
+                gl.glVertex2f(-2, -4);
+                gl.glVertex2f(0, -6);
+                gl.glVertex2f(2, -4);
+                gl.glVertex2f(0, -2);
+            gl.glEnd(); 
+        gl.glPopMatrix();
+
+        // Desativar a iluminação
+        gl.glDisable(GL2.GL_LIGHTING);
+        gl.glDisable(GL2.GL_LIGHT0);
+        rotate++;
     }
 
     private void drawScene(GL2 gl){
@@ -448,7 +516,7 @@ public class Cena implements GLEventListener {
             gen = 0;
         }
         soundTrack.stop();
-        soundTrack = playSound(music[gen],-20.0f);
+        soundTrack = playSound(music[gen],-5.0f);
         soundTrack.start();
         levelChange = false;
         image = ImageIO.read(new File(background[gen]));
