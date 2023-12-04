@@ -22,10 +22,11 @@ public class Renderer {
         GLCapabilities caps = new GLCapabilities(profile);        
         window = GLWindow.create(caps);
         window.setSize(screenWidth, screenHeight);
-        window.setTitle("PokéOut");
+        window.setTitle("PokéOut!");
         
         Cena cena = new Cena();
         Input inputs = new Input(cena);
+        new Menu(cena);
         
         window.addGLEventListener(cena);
         window.addMouseListener(inputs);
