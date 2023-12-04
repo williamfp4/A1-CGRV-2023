@@ -71,6 +71,7 @@ public class Input extends MouseAdapter implements KeyListener{
                     if(!(Menu.seeRules)) Menu.seeRules = true;
                 }else if(relativeMouseY < -3.75f && relativeMouseY > -7.5f){
                     if(!(Menu.seeRules)){
+                        Renderer.stopAnimator();
                         System.exit(0);
                     } else{
                         Menu.seeRules = false;

@@ -31,13 +31,13 @@ import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 public class Cena implements GLEventListener {    
     public float movePaddle, ballVelX, ballVelY, ballSpeed, mouseX, root, larguraFrame, alturaFrame;
     public float xMin, xMax, yMin, yMax, zMin, zMax, aspect;
-    private int pkmnHealth, points, gen, lives;
+    private int pkmnHealth, hit, points, gen, lives;
     private float ballX, ballY, ballSpin, spinY;
     private String ballSound;
     private String[] background = new String[]{"A1-CGRV-2023/images/kanto.jpg","A1-CGRV-2023/images/johto.jpg","A1-CGRV-2023/images/hoenn.jpg","A1-CGRV-2023/images/sinnoh.jpg","A1-CGRV-2023/images/unova.jpg"};
     private String[] music = new String[]{"A1-CGRV-2023/audio/r1Kanto.wav","A1-CGRV-2023/audio/r101.wav","A1-CGRV-2023/audio/r29.wav","A1-CGRV-2023/audio/r201.wav","A1-CGRV-2023/audio/r1Unova.wav"};
     private Clip soundTrack, ball;
-    private boolean resumeSound, levelChange, findPkmn;
+    private boolean resumeSound, levelChange, findPkmn, damage;
     BufferedImage image, ballImage;
     Paddle pad = new Paddle(-1.5f, 1.5f, 0.2f);
     Random rn = new Random();
@@ -59,7 +59,8 @@ public class Cena implements GLEventListener {
         spinY = 0;
         lives = 5;
         points = 0;
-        pkmnHealth = 0;
+        hit = pkmnHealth = 0;
+        damage = false;
         gen = 0;
         levelChange = true;
         findPkmn = false;
@@ -92,7 +93,7 @@ public class Cena implements GLEventListener {
                     soundTrack.start();
                     resumeSound = false;
                 }
-                ball = playSound(ballSound, -10.0f);
+                ball = playSound(ballSound, -30.0f);
                 if(points != 0 && points % 200 == 0){
                     findPkmn = true;
                 } 
@@ -105,6 +106,7 @@ public class Cena implements GLEventListener {
 
                 if(findPkmn){
                     if(pkmnHealth == 0){
+                        hit = 0;
                         encounter(gl);
                         soundTrack.stop();
                         soundTrack = playSound("A1-CGRV-2023/audio/encounterEffect.wav",-2.0f);
@@ -116,6 +118,7 @@ public class Cena implements GLEventListener {
                         image = ImageIO.read(new File("A1-CGRV-2023/images/encounter.jpeg"));
                         pkmnHealth = 100;
                     }else{
+                        damage = true;
                         drawPkmn(gl);
                     }
                 }
@@ -128,6 +131,7 @@ public class Cena implements GLEventListener {
             }
 
             if(lives == 0){
+                Renderer.stopAnimator();
                 System.exit(0);
             }
         
@@ -145,13 +149,15 @@ public class Cena implements GLEventListener {
                         gl.glVertex2f(6, 3);
                         gl.glVertex2f(6, -6);
                     gl.glEnd();
-                    Menu.drawText(gl, "-Para movimentar o bastão utilize o mouse;", Color.BLACK, 20, 420, 400);
-                    Menu.drawText(gl, "-Receba 50 pontos a cada rebatida de bola;", Color.BLACK, 20, 420, 360);
-                    Menu.drawText(gl, "-Um pokémon aparece a cada 200 pontos;", Color.BLACK, 20, 420, 320);
-                    Menu.drawText(gl, "-Os pokémons tem 100 pontos de vida;", Color.BLACK, 20, 420, 280);
+                    Menu.drawText(gl, "-Para movimentar o bastão utilize o mouse;", Color.BLACK, 20, 420, 440);
+                    Menu.drawText(gl, "-Receba 50 pontos a cada rebatida de bola;", Color.BLACK, 20, 420, 400);
+                    Menu.drawText(gl, "-Um pokémon aparece a cada 200 pontos;", Color.BLACK, 20, 420, 360);
+                    Menu.drawText(gl, "-Os pokémons tem 100 pontos de vida;", Color.BLACK, 20, 420, 320);
+                    Menu.drawText(gl, "-O pokémon recebe 25 de dano se atingido;", Color.BLACK, 20, 420, 280);
                     Menu.drawText(gl, "-São capturados os que chegarem a 0 de vida;", Color.BLACK, 20, 420, 240);
-                    Menu.drawText(gl, "-Caso perca 5 pokébolas, o jogo acaba.", Color.BLACK, 20, 420, 200);
-                    Menu.drawText(gl, "< Voltar >", Color.BLUE, 25, 580, 130);
+                    Menu.drawText(gl, "-O jogador ganha 100 pontos a cada captura;", Color.BLACK, 20, 420, 200);
+                    Menu.drawText(gl, "-Caso perca 5 pokébolas, o jogo acaba.", Color.BLACK, 20, 420, 160);
+                    Menu.drawText(gl, "< Voltar >", Color.BLUE, 25, 580, 115);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -263,6 +269,7 @@ public class Cena implements GLEventListener {
             if(!findPkmn){
                 points += 50;
             }else{
+                if(damage) hit++;
                 pkmnHealth -= 25;
             }
             if(findPkmn == true && pkmnHealth == 0){
@@ -326,6 +333,7 @@ public class Cena implements GLEventListener {
         BufferedImage lifeImage = ImageIO.read(new File("A1-CGRV-2023/images/pokeball.png"));
         Texture lifeTexture = AWTTextureIO.newTexture(gl.getGLProfile(), lifeImage, false);
 
+        //Player Health
         gl.glPushMatrix();
             lifeTexture.enable(gl);
             lifeTexture.bind(gl);
@@ -377,6 +385,29 @@ public class Cena implements GLEventListener {
             lifeTexture.disable(gl);
         gl.glPopMatrix();
 
+        //Pokémon Health
+        if(findPkmn){
+            gl.glPushMatrix();
+                gl.glColor4f(0, 0, 0, 1f);
+                gl.glTranslatef(0, 13.8f, 0);
+                gl.glBegin(GL2.GL_QUADS);
+                    gl.glVertex2f(-5f, -6.5f);
+                    gl.glVertex2f(5f, -6.5f);
+                    gl.glVertex2f(5f, -6f);
+                    gl.glVertex2f(-5f, -6f);
+                gl.glEnd();
+
+                gl.glTranslatef(0, 0.05f, 0);
+                gl.glColor4f(0, 1, 0, 1f);
+                gl.glBegin(GL2.GL_QUADS);
+                    gl.glVertex2f(-4.85f, -6.15f);
+                    gl.glVertex2f(4.85f-2.425f*hit, -6.15f);
+                    gl.glVertex2f(4.85f-2.425f*hit, -6.45f);
+                    gl.glVertex2f(-4.85f, -6.45f);
+                gl.glEnd();
+            gl.glPopMatrix();
+        }
+
         Menu.drawText(gl, "Points: "+String.valueOf(points), Color.CYAN, 30, 1002, 687);
     }
 
@@ -417,7 +448,7 @@ public class Cena implements GLEventListener {
             gen = 0;
         }
         soundTrack.stop();
-        soundTrack = playSound(music[gen],0.0f);
+        soundTrack = playSound(music[gen],-20.0f);
         soundTrack.start();
         levelChange = false;
         image = ImageIO.read(new File(background[gen]));

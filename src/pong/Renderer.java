@@ -12,6 +12,7 @@ import com.jogamp.opengl.util.FPSAnimator;
  */
 public class Renderer {
     private static GLWindow window = null;
+    private static FPSAnimator animator;
     public static int screenWidth = 1280;
     public static int screenHeight = 720; 
 
@@ -32,8 +33,7 @@ public class Renderer {
         window.addMouseListener(inputs);
         window.addKeyListener(inputs);
         
-        
-        FPSAnimator animator = new FPSAnimator(window, 60);
+        animator = new FPSAnimator(window, 60);
         animator.start();
         
         window.addWindowListener(new WindowAdapter() {
@@ -47,6 +47,11 @@ public class Renderer {
         // Se preferir colocar em Janela, mudar para false
         window.setFullscreen(false);
         window.setVisible(true);
+    }
+
+    public static void stopAnimator(){
+        animator.stop();
+        System.exit(0);
     }
   
     public static void main(String[] args) {
